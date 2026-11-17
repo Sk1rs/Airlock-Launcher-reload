@@ -1,4 +1,8 @@
-param([string]$Destination = (Join-Path $PSScriptRoot 'dist\Airlock Launcher - Dev'))
+param(
+    [string]$Destination = (Join-Path $PSScriptRoot 'dist\Airlock Launcher - Dev'),
+    [ValidatePattern('^(0|[1-9][0-9]{0,3})\.(0|[1-9][0-9]{0,3})\.(0|[1-9][0-9]{0,3})$')]
+    [string]$ReleaseVersion = '4.2.0'
+)
 
 $ErrorActionPreference = 'Stop'
 $baseArchive = Join-Path $PSScriptRoot 'vendor\AirlockLauncher-4.2.0-win-x64.zip'
@@ -32,7 +36,7 @@ if (-not $hasCurrentBase) {
     Set-Content -LiteralPath $buildStamp -Value $archiveHash
 }
 
-dotnet build $project -c Release -p:NuGetAudit=false
+dotnet build $project -c Release -p:NuGetAudit=false "-p:FileVersion=$ReleaseVersion.0"
 if ($LASTEXITCODE -ne 0) {
     throw 'Build failed.'
 }

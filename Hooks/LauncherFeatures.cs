@@ -25,6 +25,9 @@ namespace Airlock.Features;
 
 public static class LauncherFeatures
 {
+    public static void AttachReleaseCheck(Window window) => WindowsReleases.Attach(window);
+    public static string DisplayReleaseVersion() => $"v{WindowsReleases.InstalledVersion}";
+
     private static readonly ConditionalWeakTable<ConnectingViewModel, ServerAttempt> Attempts = new();
     private static readonly FieldInfo ServerWindowField = GetPrivateField(typeof(ServerEntryViewModel), "_windowVm");
     private static readonly FieldInfo ConnectorField = GetPrivateField(typeof(ConnectingViewModel), "_connector");
@@ -160,7 +163,7 @@ public static class LauncherFeatures
                 TopLevel.GetTopLevel(overlay)?.Clipboard is not { } clipboard)
                 return;
             var updater = Locator.Current.GetRequiredService<Updater>();
-            var reportText = $"Airlock Launcher 4.2.0\nOS: {Environment.OSVersion.Version}\nConnection: {connector.Status}\nUpdate: {updater.Status}\nError: {updater.UpdateException?.GetType().Name ?? "—"}";
+            var reportText = $"Airlock Launcher {WindowsReleases.InstalledVersion}\nOS: {Environment.OSVersion.Version}\nConnection: {connector.Status}\nUpdate: {updater.Status}\nError: {updater.UpdateException?.GetType().Name ?? "—"}";
             var recent = ReadShareableLogEvents();
             if (recent.Length != 0)
                 reportText += "\n\nRecent launcher events:\n" + recent;

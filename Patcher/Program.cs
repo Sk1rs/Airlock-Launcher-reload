@@ -38,7 +38,15 @@ void Attach(string type, string hook)
 
 Attach("Views.MainWindowTabs.ServerEntryView", "AttachServerCard");
 Attach("Views.ConnectingOverlay", "AttachRecovery");
+Attach("Views.MainWindow", "AttachReleaseCheck");
 Attach("ViewModels.MainWindowTabs.GuidesTabViewModel", "AddCookingGuide");
+
+var versionGetter = Method("ViewModels.MainWindowViewModel", "get_Version");
+versionGetter.Body.Instructions.Clear();
+versionGetter.Body.Variables.Clear();
+var versionIl = versionGetter.Body.GetILProcessor();
+versionIl.Emit(OpCodes.Call, Hook("DisplayReleaseVersion"));
+versionIl.Emit(OpCodes.Ret);
 
 const string repositoryPath = "github.com/Sk1rs/Airlock-Launcher-reload";
 foreach (var type in launcher.GetTypes())

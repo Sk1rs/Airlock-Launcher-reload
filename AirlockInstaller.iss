@@ -1,7 +1,12 @@
 #define AppName "Airlock Launcher"
 #define AppExe "Airlock Launcher.exe"
-#define AppVersion "4.2.0"
-#define Payload "dist\Airlock Launcher - Dev"
+#ifndef Payload
+  #define Payload "dist\Airlock Launcher - Dev"
+#endif
+#ifndef AppVersion
+  #define FeatureVersion GetFileVersion(Payload + "\bin_x64\Airlock.Features.dll")
+  #define AppVersion Copy(FeatureVersion, 1, Len(FeatureVersion) - 2)
+#endif
 
 [Setup]
 AppId={{7F2F9360-81F7-444C-AC23-1E2A1C04708C}
@@ -20,7 +25,7 @@ SetupIconFile={#Payload}\airlock.ico
 UninstallDisplayIcon={app}\{#AppExe}
 LicenseFile={#Payload}\LICENSE
 OutputDir=dist
-OutputBaseFilename=AirlockLauncher-Setup-4.2.0-win-x64-NoCharacterPreview
+OutputBaseFilename=AirlockLauncher-Setup-{#AppVersion}-win-x64
 Compression=lzma2
 SolidCompression=yes
 

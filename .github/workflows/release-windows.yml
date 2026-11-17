@@ -1,0 +1,51 @@
+name: Release Windows launcher
+
+on:
+  push:
+    tags:
+      - 'windows-v*'
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: windows-2025
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Build launcher from the Windows branch
+        shell: pwsh
+        run: |
+          git merge-base --is-ancestor HEAD origin/main
+          if ($LASTEXITCODE -ne 0) { throw 'Tag a commit from main.' }
+          $version = $env:GITHUB_REF_NAME.Substring('windows-v'.Length)
+          ./Build-Dev.ps1 -ReleaseVersion $version
+      - name: Build installer
+        shell: pwsh
+        run: |
+          $setup = Join-Path $env:RUNNER_TEMP 'innosetup-6.7.4.exe'
+          $compiler = Join-Path $env:RUNNER_TEMP 'inno'
+          Invoke-WebRequest 'https://github.com/jrsoftware/issrc/releases/download/is-6_7_4/innosetup-6.7.4.exe' -OutFile $setup
+          $signature = Get-AuthenticodeSignature -LiteralPath $setup
+          if ($signature.Status -ne 'Valid' -or $signature.SignerCertificate.Subject -notmatch 'CN=Pyrsys B\.V\.') {
+              throw 'Inno Setup signature validation failed.'
+          }
+          $arguments = @('/PORTABLE=1', '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', "/DIR=`"$compiler`"")
+          $process = Start-Process -FilePath $setup -ArgumentList $arguments -WindowStyle Hidden -Wait -PassThru
+          if ($process.ExitCode -ne 0) { throw 'Inno Setup extraction failed.' }
+          & (Join-Path $compiler 'ISCC.exe') /Qp ./AirlockInstaller.iss
+          if ($LASTEXITCODE -ne 0) { throw 'Installer build failed.' }
+      - name: Publish GitHub release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $version = $env:GITHUB_REF_NAME.Substring('windows-v'.Length)
+          $installer = Get-Item -LiteralPath "./dist/AirlockLauncher-Setup-$version-win-x64.exe"
+          gh release create $env:GITHUB_REF_NAME $installer.FullName --verify-tag --title "Airlock Launcher $version for Windows" --generate-notes
+          if ($LASTEXITCODE -ne 0) { throw 'Release publication failed.' }
