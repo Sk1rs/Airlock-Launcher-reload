@@ -1,4 +1,4 @@
-# Airlock Launcher 4.2.0
+# Airlock Launcher 4.2.1
 
 1. **Скачай и установи** [.NET SDK 10 (Windows x64)](https://dotnet.microsoft.com/en-us/download/dotnet/10.0). На GitHub нажми **Code → Download ZIP** и распакуй архив проекта.
 2. **Собери.** Открой PowerShell в папке с `Build-Dev.ps1` и выполни:
