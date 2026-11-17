@@ -1,0 +1,14 @@
+**/bin/
+**/obj/
+.inno/
+.vs/
+/.build/
+/dist/
+*.user
+*.suo
+*.dll
+*.exe
+*.pdb
+*.log
+/Airlock Launcher/
+/Airlock Launcher - Dev/
