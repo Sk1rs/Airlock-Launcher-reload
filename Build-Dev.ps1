@@ -4,7 +4,16 @@ $ErrorActionPreference = 'Stop'
 $baseArchive = Join-Path $PSScriptRoot 'vendor\AirlockLauncher-4.2.0-win-x64.zip'
 $project = Join-Path $PSScriptRoot 'Patcher\Patcher.csproj'
 if (Test-Path -LiteralPath $Destination) {
-    throw "The destination already exists: $Destination"
+    if ($PSBoundParameters.ContainsKey('Destination')) {
+        throw "The destination already exists: $Destination"
+    }
+
+    $defaultDestination = $Destination
+    $buildNumber = 2
+    do {
+        $Destination = "$defaultDestination ($buildNumber)"
+        $buildNumber++
+    } while (Test-Path -LiteralPath $Destination)
 }
 
 $originalLauncher = Join-Path $PSScriptRoot '.build\Airlock Launcher'
@@ -41,13 +50,21 @@ if ($LASTEXITCODE -ne 0) {
     throw 'Patching failed.'
 }
 
-[IO.File]::Move((Resolve-Path -LiteralPath $patchedDll).Path, (Resolve-Path -LiteralPath $launcherDll).Path, $true)
+Copy-Item -LiteralPath $patchedDll -Destination $launcherDll -Force
+Remove-Item -LiteralPath $patchedDll
 Copy-Item -LiteralPath $hooks -Destination $binDirectory
 
 $depsPath = Join-Path $binDirectory 'SS14.Launcher.deps.json'
-$deps = Get-Content -LiteralPath $depsPath -Raw | ConvertFrom-Json -AsHashtable
-$target = $deps.targets[$deps.runtimeTarget.name]
-$target['SS14.Launcher/4.2.0'].dependencies['Airlock.Features'] = '1.0.0'
-$target['Airlock.Features/1.0.0'] = @{ runtime = @{ 'Airlock.Features.dll' = @{} } }
-$deps.libraries['Airlock.Features/1.0.0'] = @{ type = 'project'; serviceable = $false; sha512 = '' }
-$deps | ConvertTo-Json -Depth 60 | Set-Content -LiteralPath $depsPath -Encoding utf8
+$deps = Get-Content -LiteralPath $depsPath -Raw -Encoding UTF8 | ConvertFrom-Json
+$target = $deps.targets.($deps.runtimeTarget.name)
+$target.'SS14.Launcher/4.2.0'.dependencies | Add-Member -NotePropertyName 'Airlock.Features' -NotePropertyValue '1.0.0'
+$target | Add-Member -NotePropertyName 'Airlock.Features/1.0.0' -NotePropertyValue @{
+    runtime = @{ 'Airlock.Features.dll' = @{} }
+}
+$deps.libraries | Add-Member -NotePropertyName 'Airlock.Features/1.0.0' -NotePropertyValue @{
+    type = 'project'
+    serviceable = $false
+    sha512 = ''
+}
+[IO.File]::WriteAllText((Resolve-Path -LiteralPath $depsPath).Path, ($deps | ConvertTo-Json -Depth 60))
+Write-Host "Launcher: $((Resolve-Path -LiteralPath (Join-Path $Destination 'Airlock Launcher.exe')).Path)"
