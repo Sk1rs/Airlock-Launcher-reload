@@ -40,6 +40,26 @@ Attach("Views.MainWindowTabs.ServerEntryView", "AttachServerCard");
 Attach("Views.ConnectingOverlay", "AttachRecovery");
 Attach("ViewModels.MainWindowTabs.GuidesTabViewModel", "AddCookingGuide");
 
+const string repositoryPath = "github.com/Sk1rs/Airlock-Launcher-reload";
+foreach (var type in launcher.GetTypes())
+{
+    foreach (var method in type.Methods.Where(method => method.HasBody))
+    {
+        foreach (var instruction in method.Body.Instructions.Where(instruction => instruction.OpCode == OpCodes.Ldstr))
+        {
+            instruction.Operand = instruction.Operand switch
+            {
+                "https://github.com/Sk1rs" => "https://" + repositoryPath,
+                "github.com/Sk1rs" => repositoryPath,
+                _ => instruction.Operand
+            };
+        }
+    }
+}
+
+var disclaimer = launcher.GetType("SS14.Launcher.Views.DisclaimerDialog");
+disclaimer.Fields.Single(field => field.Name == "ForkUrl").Constant = "https://" + repositoryPath;
+
 CharacterPreviewRemoval.Remove(launcher, Method("ViewModels.MainWindowViewModel", ".ctor"));
 
 var start = Method("ViewModels.ConnectingViewModel", "Start");
