@@ -1,0 +1,6 @@
+SS14.Launcher/ViewLocator.cs
+Copyright (c) The Avalonia Project. All rights reserved.
+
+SS14.Launcher/Utility/HttpUtility.cs
+The original code is Copyright © .NET Foundation and Contributors. All rights reserved. Licensed under the MIT License (MIT).
+https://github.com/dotnet/runtime/blob/f89fbb96cabe95db5869e3d44c6b48c1c0f8fc1a/src/libraries/System.Net.Http/src/System/Net/Http/SocketsHttpHandler/DecompressionHandler.cs
