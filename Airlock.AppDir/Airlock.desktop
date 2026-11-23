@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Airlock Launcher
+Comment=Airlock Launcher for Linux
+Exec=AppRun
+Icon=airlock
+Categories=Game;
+Terminal=false
